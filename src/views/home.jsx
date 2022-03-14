@@ -1,65 +1,93 @@
-import Input from "@components/Input";
 import { Button, Snackbar, Box, Alert } from "@mui/material";
-
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useFetch } from "../hooks/useFetch";
+import toast, { Toaster } from "react-hot-toast";
 
 function home() {
-  const [inputEmail, setInputEmail] = useState({
-    type: "email",
-    label: "Address email",
-    name: "email",
-    validation: "email",
-  });
-  const [inputPassword, setInputPassword] = useState({
-    label: "Password",
-    name: "password",
-    visibility: false,
-  });
-  const [showValue, setShowValue] = useState(false);
-  const sendData = (e) => {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      return navigate("/");
+    }
+  }, [navigate]);
+
+  const sendData = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const { email, password } = Object.fromEntries(new FormData(e.target));
-    if (!(email && password)) setShowValue(true);
+    if (!(email && password)) {
+      return toast("Registration Successful . pls login ");
+    }
+    let { data } = await useFetch.post(
+      "https://tanger-med-tech.herokuapp.com/api/v1/login",
+      {
+        email,
+        password,
+      }
+    );
+    toast("Registration Successful . pls login ");
+    setLoading(false);
+    let { _id, token } = data;
+    localStorage.setItem("token", token);
+    localStorage.setItem("id", _id);
+    delete data.token;
+    navigate("/");
   };
   return (
-    <>
-      <Snackbar
-        open={showValue}
-        onClose={() => setShowValue(false)}
-        autoHideDuration={2500}
-      >
-        <Alert
-          severity="error"
-          sx={{ width: "100%" }}
-          onClose={() => setShowValue(false)}
-        >
-          Please fill fields above !
-        </Alert>
-      </Snackbar>
-      <Box>
-        <Box
-          sx={{
-            textAlign: "center",
-            fontWeight: "bold",
-            fontSize: "h6.fontSize",
-            mb: 2,
-          }}
-        >
-          Login form
-        </Box>
-        <form action="" method="post" onSubmit={sendData}>
-          <Box sx={{ mb: 2 }}>
-            <Input {...inputEmail} />
-          </Box>
-          <Box sx={{ mb: 2 }}>
-            <Input {...inputPassword} />
-          </Box>
-          <Button type="submit" variant="contained" sx={{ width: "100%" }}>
-            login
-          </Button>
+    <div className="w-full flex justify-center  ">
+      <div className="w-[50%] mt-20">
+        <form onSubmit={(e) => handleSubmit(e)}>
+          <div className="mb-6">
+            <label
+              htmlFor="email"
+              className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+            >
+              Your email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
+              placeholder="email@gmail.com"
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <label
+              htmlFor="password"
+              className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+            >
+              Your password
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={!email || !password || loading}
+            className="text-white bg-blue-700 w-[200px] hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          >
+            {loading ? <SyncOutlined spin /> : "Login"}
+          </button>
         </form>
-      </Box>
-    </>
+        <p className="text-center p-3">
+          Not Yet Registred ?<Link to="/signUp">Register</Link>
+        </p>
+      </div>
+    </div>
   );
 }
 
