@@ -1,13 +1,14 @@
-import { Button, Snackbar, Box, Alert } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useFetch } from "../hooks/useFetch";
 import toast, { Toaster } from "react-hot-toast";
+import { SyncOutlined } from "@ant-design/icons";
+import Input from "@/components/input";
 
 function home() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("othmanekahtal@gmail.com");
+  const [password, setPassword] = useState("mi");
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -17,74 +18,74 @@ function home() {
 
   const sendData = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    const { email, password } = Object.fromEntries(new FormData(e.target));
     if (!(email && password)) {
-      return toast("Registration Successful . pls login ");
+      let errorMessage = "";
+      errorMessage = !email ? "Enter email before!" : "Enter password before!";
+      console.log(errorMessage);
+      return toast.error(errorMessage);
     }
-    let { data } = await useFetch.post(
+    setLoading(true);
+    let response = await useFetch.post(
       "https://tanger-med-tech.herokuapp.com/api/v1/login",
       {
         email,
         password,
       }
     );
-    toast("Registration Successful . pls login ");
+    const data = await response.json();
+    const { status } = response;
     setLoading(false);
-    let { _id, token } = data;
+    if (status == 401) {
+      return toast.error("Email or Password not correct!");
+    }
     localStorage.setItem("token", token);
     localStorage.setItem("id", _id);
     delete data.token;
     navigate("/");
   };
+  const emailInput = {
+    type: email,
+    labelValue: "Your email",
+    value: email,
+    onChangeAction: (e) => setEmail(e.target.value),
+    placeholder: "example@example.com",
+  };
+  const passwordInput = {
+    type: password,
+    labelValue: "Your password",
+    value: password,
+    onChangeAction: (e) => setPassword(e.target.value),
+    placeholder: "password",
+  };
   return (
-    <div className="w-full flex justify-center  ">
-      <div className="w-[50%] mt-20">
-        <form onSubmit={(e) => handleSubmit(e)}>
-          <div className="mb-6">
-            <label
-              htmlFor="email"
-              className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-            >
-              Your email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
-              placeholder="email@gmail.com"
-              required
-            />
-          </div>
-          <div className="mb-6">
-            <label
-              htmlFor="password"
-              className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-            >
-              Your password
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:shadow-sm-light"
-              required
-            />
-          </div>
-
+    <div className="w-full flex justify-center items-center h-screen ">
+      <Toaster />
+      <div className="mt-20">
+        <h2 className="text-2xl dark:text-gray-300 text-center mb-5">Login</h2>
+        <form onSubmit={sendData}>
+          <Input {...emailInput} />
+          <Input {...passwordInput} />
           <button
             type="submit"
-            disabled={!email || !password || loading}
-            className="text-white bg-blue-700 w-[200px] hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            // disabled={!email || !password || loading}
+            className={`text-white dark:text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800
+              ${
+                !email || !password || loading
+                  ? "cursor-not-allowed"
+                  : "cursor-pointer"
+              }`}
           >
             {loading ? <SyncOutlined spin /> : "Login"}
           </button>
         </form>
-        <p className="text-center p-3">
-          Not Yet Registred ?<Link to="/signUp">Register</Link>
+        <p className="text-center p-3 dark:text-gray-300">
+          You haven't an account ?{" "}
+          <Link
+            className="dark:text-blue-500 dark:hover:text-blue-600"
+            to="/signup"
+          >
+            Register
+          </Link>
         </p>
       </div>
     </div>
