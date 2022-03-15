@@ -8,11 +8,11 @@ import Input from "@/components/input";
 function home() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("othmanekahtal@gmail.com");
-  const [password, setPassword] = useState("mi");
+  const [password, setPassword] = useState("othmane kahtal");
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (localStorage.getItem("token")) {
-      return navigate("/");
+      return navigate("/dashboard");
     }
   }, [navigate]);
 
@@ -26,7 +26,8 @@ function home() {
     }
     setLoading(true);
     let response = await useFetch.post(
-      "https://tanger-med-tech.herokuapp.com/api/v1/login",
+      // "https://tanger-med-tech.herokuapp.com/api/v1/login",
+      "http://localhost:8080/api/v1/login",
       {
         email,
         password,
@@ -38,20 +39,21 @@ function home() {
     if (status == 401) {
       return toast.error("Email or Password not correct!");
     }
+    const { user, token } = data;
     localStorage.setItem("token", token);
-    localStorage.setItem("id", _id);
+    localStorage.setItem("id", user._id);
     delete data.token;
-    navigate("/");
+    navigate("/dashboard");
   };
   const emailInput = {
-    type: email,
+    type: "email",
     labelValue: "Your email",
     value: email,
     onChangeAction: (e) => setEmail(e.target.value),
     placeholder: "example@example.com",
   };
   const passwordInput = {
-    type: password,
+    type: "password",
     labelValue: "Your password",
     value: password,
     onChangeAction: (e) => setPassword(e.target.value),
@@ -78,15 +80,6 @@ function home() {
             {loading ? <SyncOutlined spin /> : "Login"}
           </button>
         </form>
-        <p className="text-center p-3 dark:text-gray-300">
-          You haven't an account ?{" "}
-          <Link
-            className="dark:text-blue-500 dark:hover:text-blue-600"
-            to="/signup"
-          >
-            Register
-          </Link>
-        </p>
       </div>
     </div>
   );

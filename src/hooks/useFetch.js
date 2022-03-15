@@ -1,25 +1,26 @@
 export const useFetch = {
-  async get(url) {
-    const response = await fetch(url, {
+  async get(url, token = null) {
+    const Headers = {
+      accept: "application/json",
+      "Content-Type": "application/json",
+    };
+    token && (Headers["Authorization"] = `Bearer ${token}`);
+    return await fetch(url, {
       method: "GET",
       //   credentials: "include",
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-        // "Authorization": `Bearer ${token}`
-      },
+      headers: Headers,
     });
-    return await response.json();
   },
 
-  async post(url, body) {
+  async post(url, body, token = null) {
+    const Headers = {
+      "Content-Type": "application/json",
+    };
+    token && (Headers["Authorization"] = `Bearer ${token}`);
     return await fetch(url, {
       method: "POST",
       //   credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        // "Authorization": `Bearer ${token}`
-      },
+      headers: Headers,
       body: JSON.stringify(body),
     });
   },
